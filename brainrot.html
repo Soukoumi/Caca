@@ -3,74 +3,628 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soundboard</title>
+    <title>Brainrot</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
+            margin: 0;
             padding: 20px;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></svg>') repeat,
+                linear-gradient(45deg, rgba(255,255,255,0.02) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.02) 75%);
+            background-size: 100px 100px, 20px 20px;
+            opacity: 0.1;
+            pointer-events: none;
+            animation: backgroundMove 20s linear infinite;
+        }
+        @keyframes backgroundMove {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 100px 100px, 20px 20px; }
         }
         .soundboard {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            max-width: 800px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            max-width: 1400px;
+            margin-top: 30px;
+            padding: 20px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
         }
         .sound-button {
-            background-color: #4CAF50;
-            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 20px;
+            padding: 25px;
             text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 14px;
             cursor: pointer;
-            border-radius: 12px;
-            transition: transform 0.1s;
+            border-radius: 25px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            min-width: 150px;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .sound-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%) rotate(45deg);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sound-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .sound-button:hover::after {
+            opacity: 1;
+        }
+        .sound-button:hover::before {
+            transform: translateX(100%) rotate(45deg);
         }
         .sound-button:hover {
-            background-color: #45a049;
-            transform: scale(1.05);
+            transform: translateY(-8px) scale(1.05) rotateX(5deg);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                        0 0 30px rgba(255, 255, 255, 0.2),
+                        0 0 50px rgba(78, 205, 196, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
         }
         .sound-button:active {
-            transform: scale(0.95);
+            transform: scale(0.95) rotateX(-5deg);
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.8),
+                        inset 0 0 30px rgba(0, 255, 0, 0.4),
+                        0 0 60px rgba(0, 255, 0, 0.6);
+        }
+        .sound-button.playing {
+            background: rgba(0, 255, 0, 0.2);
+            border-color: rgba(0, 255, 0, 0.8);
+            animation: pulse 1.5s infinite, glow 2s infinite, float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .sound-button img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+        .sound-button:hover img {
+            transform: scale(1.2) rotateY(15deg);
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4),
+                       0 0 50px rgba(78, 205, 196, 0.3);
+        }
+        .sound-button.playing img {
+            border-color: rgba(0, 255, 0, 0.8);
+            box-shadow: 0 0 35px rgba(0, 255, 0, 0.6),
+                       0 0 60px rgba(0, 255, 0, 0.4);
+            animation: rotate 2s infinite linear, pulse 1.5s infinite;
         }
         h1 {
-            color: #333;
+            color: white;
             text-align: center;
+            font-size: 4.5em;
+            margin: 30px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ff6b6b);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite, float 3s ease-in-out infinite;
+            font-weight: 800;
+            letter-spacing: 2px;
+            position: relative;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: shine 2s infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .sound-name {
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.3em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: all 0.3s ease;
+        }
+        .sound-button:hover .sound-name {
+            transform: scale(1.1);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        .progress-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: progressShine 2s infinite;
+        }
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
+            width: 0%;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 10px rgba(255, 154, 158, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.6); }
+            70% { box-shadow: 0 0 0 20px rgba(0, 255, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+        }
+        @keyframes glow {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+            100% { filter: brightness(1); }
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .global-controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+        .control-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        .control-button:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        .control-button:active {
+            transform: scale(0.95);
+        }
+        .control-button.paused {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.5);
+            animation: pulse 1.5s infinite;
+        }
+        .sound-button.paused {
+            opacity: 0.5;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <h1>Soundboard</h1>
+    <h1>Brainrot</h1>
     <div class="soundboard">
-        <button class="sound-button" onclick="playSound('applause')">Applaudissements</button>
-        <button class="sound-button" onclick="playSound('laugh')">Rire</button>
-        <button class="sound-button" onclick="playSound('boo')">Bouh</button>
-        <button class="sound-button" onclick="playSound('drum')">Tambour</button>
-        <button class="sound-button" onclick="playSound('bell')">Cloche</button>
-        <button class="sound-button" onclick="playSound('whistle')">Sifflet</button>
+        <button class="sound-button" onclick="playSound('tralalero tralala')">
+            <img src="tralalero.webp" alt="Tralala tralalero">
+            <span class="sound-name">tralalero tralala</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('crocodilo')">
+            <img src="crocodilo.jpeg" alt="crocodilo">
+            <span class="sound-name">crocodilo bombardino</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('bombini')">
+            <img src="Bombini.webp" alt="Bombini">
+            <span class="sound-name">bombini</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('trulimero')">
+            <img src="Trulimero.webp" alt="Trulimero">
+            <span class="sound-name">trulimero</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('bobrito')">
+            <img src="bobrito.jpg" alt="bobrito">
+            <span class="sound-name">bobrito</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('frigo')">
+            <img src="frigo.jpg" alt="frigo">
+            <span class="sound-name"> frigo camello</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('chimpanzini')">
+            <img src="ChimpanziniBananini.webp" alt="chimpanzini">
+            <span class="sound-name"> chimpanzini</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('burbaloni')">
+            <img src="Burbaloni.webp" alt="burbaloni">
+            <span class="sound-name"> burbaloni</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('cocofanto')">
+            <img src="cocofanto.jpg" alt="cocofanto">
+            <span class="sound-name"> cocofanto</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('bananita')">
+            <img src="bananita.jpg" alt="bananita">
+            <span class="sound-name"> bananita</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('zibra')">
+            <img src="zibra.jpg" alt="zibra">
+            <span class="sound-name"> zibra</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('blueberrinni')">
+            <img src="blueberrinni.jpg" alt="blueberrinni">
+            <span class="sound-name"> blueberrinni</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('trichi')">
+            <img src="trichi.jpg" alt="trichi">
+            <span class="sound-name"> trichi</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('boneca')">
+            <img src="Boneca.webp" alt="boneca">
+            <span class="sound-name"> boneca</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('vacca')">
+            <img src="vacca.jpg" alt="vacca">
+            <span class="sound-name"> vacca</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('patapim')">
+            <img src="patapim.jpg" alt="patapim">
+            <span class="sound-name">patapim</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('batatoso')">
+            <img src="batatoso.jpg" alt="batatoso">
+            <span class="sound-name"> batatoso</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('udin')">
+            <img src="udin.jpg" alt="udin">
+            <span class="sound-name"> udin</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('liri')">
+            <img src="liri.jpg" alt="liri">
+            <span class="sound-name"> liri</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+        <button class="sound-button" onclick="playSound('glorbo')">
+            <img src="glorbo.webp" alt="glorbo">
+            <span class="sound-name"> glorbo</span>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <span class="time-display">
+                <span class="current-time">00:00</span>
+                <span class="total-time">00:00</span>
+            </span>
+        </button>
+    </div>
+    <div class="global-controls">
+        <button class="control-button" onclick="togglePause()">⏸️</button>
     </div>
 
     <script>
         const sounds = {
-            'applause': 'https://www.soundjay.com/human/sounds/applause-8.mp3',
-            'laugh': 'https://www.soundjay.com/human/sounds/laugh-1.mp3',
-            'boo': 'https://www.soundjay.com/human/sounds/boo-1.mp3',
-            'drum': 'https://www.soundjay.com/button/sounds/beep-07.mp3',
-            'bell': 'https://www.soundjay.com/button/sounds/beep-01a.mp3',
-            'whistle': 'https://www.soundjay.com/human/sounds/whistle-1.mp3'
+            'tralalero tralala': 'tralalero tralala.mp3',
+            'crocodilo': 'crocodilo.mp3',
+            'bombini': 'bombini.mp3',
+            'trulimero': 'trulimero.mp3',
+            'bobrito': 'bobrito.mp3',
+            'frigo': 'camello.mp3',
+            'chimpanzini': 'chimpanzini.mp3',
+            'burbaloni' : 'burbaloni.mp3',
+            'cocofanto' : 'cocofanto.mp3',
+            'bananita' : 'bananitta.mp3',
+            'zibra' : 'zibra.mp3',
+            'blueberrinni' : 'blueberrinni.mp3',
+            'trichi' : 'trichi.mp3',
+            'boneca' : 'boneca.mp3',
+            'vacca' : 'vacca.mp3',
+            'patapim': 'patapim.mp3',
+            'batatoso' : 'batatoso.mp3',
+            'udin' : 'udin.mp3',
+            'liri' : 'liri.mp3',
+            'glorbo' : 'glorbo.mp3'
         };
 
+        let currentAudio = null;
+        let currentButton = null;
+        let timeUpdateInterval = null;
+        let isPaused = false;
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimeDisplay(audio, button) {
+            const currentTimeDisplay = button.querySelector('.current-time');
+            const totalTimeDisplay = button.querySelector('.total-time');
+            const progressBar = button.querySelector('.progress-bar');
+            
+            currentTimeDisplay.textContent = formatTime(audio.currentTime);
+            totalTimeDisplay.textContent = formatTime(audio.duration);
+            
+            if (audio.duration) {
+                const progress = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.width = `${progress}%`;
+            }
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const pauseButton = document.querySelector('.control-button');
+            
+            if (isPaused) {
+                pauseButton.classList.add('paused');
+                pauseButton.textContent = '▶️';
+                if (currentAudio) {
+                    currentAudio.pause();
+                }
+                document.querySelectorAll('.sound-button').forEach(button => {
+                    button.classList.add('paused');
+                });
+            } else {
+                pauseButton.classList.remove('paused');
+                pauseButton.textContent = '⏸️';
+                if (currentAudio) {
+                    currentAudio.play();
+                }
+                document.querySelectorAll('.sound-button').forEach(button => {
+                    button.classList.remove('paused');
+                });
+            }
+        }
+
         function playSound(soundName) {
+            if (isPaused) return;
+
+            // Arrêter le son en cours si nécessaire
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                if (currentButton) {
+                    currentButton.classList.remove('playing');
+                    clearInterval(timeUpdateInterval);
+                }
+            }
+
+            // Jouer le nouveau son
             const audio = new Audio(sounds[soundName]);
             audio.play();
+            currentAudio = audio;
+
+            // Mettre à jour le bouton actif
+            const button = event.currentTarget;
+            button.classList.add('playing');
+            currentButton = button;
+
+            // Mettre à jour le temps de lecture
+            timeUpdateInterval = setInterval(() => {
+                updateTimeDisplay(audio, button);
+            }, 100);
+
+            // Réinitialiser le bouton quand le son est terminé
+            audio.onended = function() {
+                button.classList.remove('playing');
+                currentAudio = null;
+                currentButton = null;
+                clearInterval(timeUpdateInterval);
+                
+                const currentTimeDisplay = button.querySelector('.current-time');
+                const progressBar = button.querySelector('.progress-bar');
+                currentTimeDisplay.textContent = '00:00';
+                progressBar.style.width = '0%';
+            };
         }
     </script>
 </body>
