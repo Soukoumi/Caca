@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soundboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .soundboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+        .sound-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: transform 0.1s;
+        }
+        .sound-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        .sound-button:active {
+            transform: scale(0.95);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Soundboard</h1>
+    <div class="soundboard">
+        <button class="sound-button" onclick="playSound('applause')">Applaudissements</button>
+        <button class="sound-button" onclick="playSound('laugh')">Rire</button>
+        <button class="sound-button" onclick="playSound('boo')">Bouh</button>
+        <button class="sound-button" onclick="playSound('drum')">Tambour</button>
+        <button class="sound-button" onclick="playSound('bell')">Cloche</button>
+        <button class="sound-button" onclick="playSound('whistle')">Sifflet</button>
+    </div>
+
+    <script>
+        const sounds = {
+            'applause': 'https://www.soundjay.com/human/sounds/applause-8.mp3',
+            'laugh': 'https://www.soundjay.com/human/sounds/laugh-1.mp3',
+            'boo': 'https://www.soundjay.com/human/sounds/boo-1.mp3',
+            'drum': 'https://www.soundjay.com/button/sounds/beep-07.mp3',
+            'bell': 'https://www.soundjay.com/button/sounds/beep-01a.mp3',
+            'whistle': 'https://www.soundjay.com/human/sounds/whistle-1.mp3'
+        };
+
+        function playSound(soundName) {
+            const audio = new Audio(sounds[soundName]);
+            audio.play();
+        }
+    </script>
+</body>
+</html>
